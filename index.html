@@ -522,19 +522,12 @@
     // Minor Arcana card images mapping
     // 使用实际的小阿卡纳牌图片文件
     const MINOR_CARD_URLS = {};
-    // 这些文件仍然使用 PNG（有透明通道）
-    const pngOnlyFiles = ['Queen_of_Pentacles', 'Six_of_Cups', 'Six_of_Wands', 'Ten_of_Cups'];
     SUITS.forEach(suit => {
         RANKS.forEach(rank => {
             const cardName = `${rank} of ${suit}`;
-            const fileName = `${rank}_of_${suit}`;
             // 文件名格式: Rank_of_Suit.jpg (例如: Ace_of_Wands.jpg)
-            // 注意: 大部分 PNG 已转换为 JPG，只有少数有透明通道的保持 PNG
-            if (pngOnlyFiles.includes(fileName)) {
-                MINOR_CARD_URLS[cardName] = `${fileName}.png`;
-            } else {
-                MINOR_CARD_URLS[cardName] = `${fileName}.jpg`;
-            }
+            // 所有图片都已转换为 JPG 格式
+            MINOR_CARD_URLS[cardName] = `${rank}_of_${suit}.jpg`;
         });
     });
     
