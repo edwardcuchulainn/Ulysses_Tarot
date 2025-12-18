@@ -314,28 +314,28 @@
     
     // --- Data Construction ---
     const MAJORS = [
-        { name: "The Fool", url: "RWS_Tarot_00_Fool.png" },
+        { name: "The Fool", url: "RWS_Tarot_00_Fool.jpg" },
         { name: "The Magician", url: "RWS_Tarot_01_Magician.jpg" },
-        { name: "The High Priestess", url: "RWS_Tarot_02_High_Priestess.png" },
-        { name: "The Empress", url: "RWS_Tarot_03_Empress.png" },
-        { name: "The Emperor", url: "RWS_Tarot_04_Emperor.png" },
-        { name: "The Hierophant", url: "RWS_Tarot_05_Hierophant.png" },
-        { name: "The Lovers", url: "RWS_Tarot_06_Lovers.png" },
-        { name: "The Chariot", url: "RWS_Tarot_07_Chariot.png" },
-        { name: "Strength", url: "RWS_Tarot_08_Strength.png" },
-        { name: "The Hermit", url: "RWS_Tarot_09_Hermit.png" },
-        { name: "Wheel of Fortune", url: "RWS_Tarot_10_Wheel_of_Fortune.png" },
-        { name: "Justice", url: "RWS_Tarot_11_Justice.png" },
+        { name: "The High Priestess", url: "RWS_Tarot_02_High_Priestess.jpg" },
+        { name: "The Empress", url: "RWS_Tarot_03_Empress.jpg" },
+        { name: "The Emperor", url: "RWS_Tarot_04_Emperor.jpg" },
+        { name: "The Hierophant", url: "RWS_Tarot_05_Hierophant.jpg" },
+        { name: "The Lovers", url: "RWS_Tarot_06_Lovers.jpg" },
+        { name: "The Chariot", url: "RWS_Tarot_07_Chariot.jpg" },
+        { name: "Strength", url: "RWS_Tarot_08_Strength.jpg" },
+        { name: "The Hermit", url: "RWS_Tarot_09_Hermit.jpg" },
+        { name: "Wheel of Fortune", url: "RWS_Tarot_10_Wheel_of_Fortune.jpg" },
+        { name: "Justice", url: "RWS_Tarot_11_Justice.jpg" },
         { name: "The Hanged Man", url: "RWS_Tarot_12_Hanged_Man.jpg" },
-        { name: "Death", url: "RWS_Tarot_13_Death.png" },
-        { name: "Temperance", url: "RWS_Tarot_14_Temperance.png" },
-        { name: "The Devil", url: "RWS_Tarot_15_Devil.png" },
-        { name: "The Tower", url: "RWS_Tarot_16_Tower.png" },
-        { name: "The Star", url: "RWS_Tarot_17_Star.png" },
-        { name: "The Moon", url: "RWS_Tarot_18_Moon.png" },
-        { name: "The Sun", url: "RWS_Tarot_19_Sun.png" },
-        { name: "Judgement", url: "RWS_Tarot_20_Judgement.png" },
-        { name: "The World", url: "RWS_Tarot_21_World.png" }
+        { name: "Death", url: "RWS_Tarot_13_Death.jpg" },
+        { name: "Temperance", url: "RWS_Tarot_14_Temperance.jpg" },
+        { name: "The Devil", url: "RWS_Tarot_15_Devil.jpg" },
+        { name: "The Tower", url: "RWS_Tarot_16_Tower.jpg" },
+        { name: "The Star", url: "RWS_Tarot_17_Star.jpg" },
+        { name: "The Moon", url: "RWS_Tarot_18_Moon.jpg" },
+        { name: "The Sun", url: "RWS_Tarot_19_Sun.jpg" },
+        { name: "Judgement", url: "RWS_Tarot_20_Judgement.jpg" },
+        { name: "The World", url: "RWS_Tarot_21_World.jpg" }
     ];
 
     // Chinese card names mapping
@@ -525,8 +525,12 @@
     SUITS.forEach(suit => {
         RANKS.forEach(rank => {
             const cardName = `${rank} of ${suit}`;
-            // 文件名格式: Rank_of_Suit.png (例如: Ace_of_Wands.png)
-            MINOR_CARD_URLS[cardName] = `${rank}_of_${suit}.png`;
+            // 文件名格式: Rank_of_Suit.jpg (例如: Ace_of_Wands.jpg)
+            // 注意: 大部分 PNG 已转换为 JPG，只有少数有透明通道的保持 PNG
+            const pngName = `${rank}_of_${suit}.png`;
+            const jpgName = `${rank}_of_${suit}.jpg`;
+            // 优先使用 JPG，如果不存在则使用 PNG
+            MINOR_CARD_URLS[cardName] = jpgName;
         });
     });
     
