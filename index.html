@@ -50,6 +50,27 @@
             letter-spacing: 3px;
             text-align: center;
         }
+        #loader-progress {
+            width: 300px;
+            height: 2px;
+            background: rgba(255,255,255,0.1);
+            margin-top: 20px;
+            border-radius: 1px;
+            overflow: hidden;
+        }
+        #loader-progress-bar {
+            height: 100%;
+            background: rgba(255,255,255,0.8);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 1px;
+        }
+        #loader-progress-text {
+            margin-top: 10px;
+            color: rgba(255,255,255,0.5);
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
 
         #intro-screen {
             position: fixed;
@@ -282,6 +303,10 @@
     <div id="loader">
         <div class="spinner"></div>
         <div id="loader-text">灵魂的欲望，是命运的先知</div>
+        <div id="loader-progress">
+            <div id="loader-progress-bar"></div>
+        </div>
+        <div id="loader-progress-text">正在加载塔罗牌...</div>
     </div>
 
     <div id="intro-screen">
@@ -580,9 +605,9 @@
     
     // 纹理缓存和预加载
     const textureCache = new Map();
-    const preloadQueue = [];
-    let preloadIndex = 0;
-    const PRELOAD_COUNT = 10; // 预加载前10张牌
+    let loadedCount = 0;
+    let totalCards = 0;
+    let allCardsLoaded = false;
     
     init();
 
@@ -640,14 +665,19 @@
         createStarfield();
         createDeckGallery();
         initAshSystem();
-        
-        // 预加载前几张牌
-        preloadNearbyCards();
 
         window.addEventListener('resize', onWindowResize);
         document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mousedown', onMouseDown);
         document.addEventListener('mouseup', onMouseUp);
+
+        // 预加载所有78张牌，完成后才进入主界面
+        try {
+            await preloadAllCards();
+            console.log('所有塔罗牌加载完成！');
+        } catch (e) {
+            console.error('预加载出错:', e);
+        }
 
         try { 
             await setupMediaPipe(); 
@@ -657,6 +687,7 @@
             updateModeBtn();
         }
         
+        // 所有资源加载完成后，隐藏加载页面
         document.getElementById('loader').style.opacity = 0;
         setTimeout(() => {
             document.getElementById('loader').remove();
@@ -675,7 +706,7 @@
                     startGuidanceCycle();
                 }, 1000);
             });
-        }, 800);
+        }, 500);
     }
 
     function createStarfield() {
@@ -915,31 +946,77 @@
         }
     }
 
-    // 预加载附近的卡牌
-    function preloadNearbyCards() {
-        const loader = new THREE.TextureLoader();
-        // 预加载前几张牌（随机选择，覆盖主要牌型）
-        const preloadCards = [
-            FULL_DECK[0],  // 第一张
-            FULL_DECK[Math.floor(FULL_DECK.length / 4)],  // 1/4
-            FULL_DECK[Math.floor(FULL_DECK.length / 2)],  // 中间
-            FULL_DECK[Math.floor(FULL_DECK.length * 3 / 4)],  // 3/4
-            FULL_DECK[FULL_DECK.length - 1],  // 最后一张
-        ];
-        
-        preloadCards.forEach((cardData, index) => {
-            setTimeout(() => {
-                const imageUrl = BASE_URL + cardData.url;
-                if (!textureCache.has(imageUrl)) {
-                    loader.load(imageUrl, (tex) => {
-                        tex.colorSpace = THREE.SRGBColorSpace;
-                        textureCache.set(imageUrl, tex);
-                        console.log('预加载完成:', imageUrl);
-                    }, undefined, (err) => {
-                        console.warn('预加载失败:', imageUrl, err);
-                    });
+    // 预加载所有78张牌
+    function preloadAllCards() {
+        return new Promise((resolve) => {
+            const loader = new THREE.TextureLoader();
+            totalCards = FULL_DECK.length;
+            loadedCount = 0;
+            
+            const progressBar = document.getElementById('loader-progress-bar');
+            const progressText = document.getElementById('loader-progress-text');
+            
+            // 更新进度
+            function updateProgress() {
+                const percent = Math.round((loadedCount / totalCards) * 100);
+                if (progressBar) {
+                    progressBar.style.width = percent + '%';
                 }
-            }, index * 200); // 错开加载时间，避免阻塞
+                if (progressText) {
+                    progressText.textContent = `正在加载塔罗牌... ${loadedCount}/${totalCards} (${percent}%)`;
+                }
+                
+                if (loadedCount >= totalCards) {
+                    allCardsLoaded = true;
+                    if (progressText) {
+                        progressText.textContent = '加载完成！';
+                    }
+                    setTimeout(resolve, 300); // 短暂延迟后完成
+                }
+            }
+            
+            // 加载所有牌（分批加载，避免阻塞）
+            const BATCH_SIZE = 5; // 每批加载5张
+            let currentIndex = 0;
+            
+            function loadBatch() {
+                const batch = FULL_DECK.slice(currentIndex, currentIndex + BATCH_SIZE);
+                
+                batch.forEach((cardData) => {
+                    const imageUrl = BASE_URL + cardData.url;
+                    if (!textureCache.has(imageUrl)) {
+                        loader.load(
+                            imageUrl,
+                            (tex) => {
+                                tex.colorSpace = THREE.SRGBColorSpace;
+                                textureCache.set(imageUrl, tex);
+                                loadedCount++;
+                                updateProgress();
+                            },
+                            undefined,
+                            (err) => {
+                                console.warn('预加载失败:', imageUrl, err);
+                                loadedCount++; // 即使失败也计数，避免卡住
+                                updateProgress();
+                            }
+                        );
+                    } else {
+                        // 已经在缓存中
+                        loadedCount++;
+                        updateProgress();
+                    }
+                });
+                
+                currentIndex += BATCH_SIZE;
+                
+                if (currentIndex < FULL_DECK.length) {
+                    // 继续加载下一批（错开时间，避免阻塞）
+                    setTimeout(loadBatch, 50);
+                }
+            }
+            
+            // 开始加载
+            loadBatch();
         });
     }
 
