@@ -1313,8 +1313,14 @@
         const el = document.createElement('div');
         el.className = 'drawn-card';
         
-        // Set background image first
+        // Set background image first (使用预加载)
         const imageUrl = BASE_URL + data.url;
+        // 使用 link preload 预加载图片
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'image';
+        link.href = imageUrl;
+        document.head.appendChild(link);
         el.style.backgroundImage = `url("${imageUrl}")`;
         el.style.backgroundColor = 'transparent';
         
